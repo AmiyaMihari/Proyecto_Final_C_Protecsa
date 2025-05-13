@@ -100,6 +100,7 @@ int main() {
         printf("3. Salir\n");
         printf("Selecciona una opción: ");
         scanf("%d", &opcion);
+        getchar(); // Limpiar el buffer de entrada
 
         switch (opcion) {
             case 1:
