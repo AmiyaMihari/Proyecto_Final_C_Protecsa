@@ -6,7 +6,7 @@
 Producto* listaProductos = NULL;
 // Información inventada por el momento
 // Definimos la estructructura del usuario usando la función del archivo productos.c
-Usuario usuario = {"Jairo", "123123123", NULL};
+Usuario usuario;
 
 // Definición de funciones
 
@@ -47,8 +47,31 @@ void verListaProductos() {
     mostrarProductos(listaProductos, &usuario);
 }
 
+void solicitarDatosUsuario() {
+    limpiarPantalla(); // Limpiar la pantalla antes de pedir información
+    printf("=== Bienvenido a la Tiendita Interactiva ===\n");
+    printf("Por favor, proporciona tu información:\n");
+
+    // Solicitar el nombre del usuario
+    printf("Nombre: ");
+    fflush(stdin); // Asegurarse de limpiar el buffer (opcional según el compilador)
+    fgets(usuario.nombre, sizeof(usuario.nombre), stdin);
+    usuario.nombre[strcspn(usuario.nombre, "\n")] = '\0'; // Eliminar el salto de línea
+
+    // Solicitar el número de celular del usuario
+    printf("Número de Celular: ");
+    fflush(stdin); // Asegurarse de limpiar el buffer (opcional según el compilador)
+    fgets(usuario.numeroCelular, sizeof(usuario.numeroCelular), stdin);
+    usuario.numeroCelular[strcspn(usuario.numeroCelular, "\n")] = '\0'; // Eliminar el salto de línea
+
+    // Inicializar el carrito del usuario como vacío
+    usuario.carrito = NULL;
+}
+
 int main() {
     int opcion; // Variable para almacenar la opción seleccionada por el usuario
+
+    solicitarDatosUsuario();
 
     // Cargar productos desde el archivo
     listaProductos = cargarProductos("productos.txt");
