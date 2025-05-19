@@ -10,11 +10,18 @@ typedef struct Producto {
     struct Producto* anterior;  // Apuntador al nodo anterior
 } Producto;
 
+// Estructura para almacenar el carrito de compras de un usuario particular
+typedef struct Carrito {
+    char nombre[65]; // Ej: "Carrito Amiya"
+    Producto* productos; // Lista doblemente ligada de productos
+} Carrito;
+
 // Estructura para almacenar la información del usuario
 typedef struct Usuario {
     char nombre[50];
     char numeroCelular[15];
-    Producto* carrito; // Apuntador al inicio de la lista de carrito de compras
+    //Producto* carrito; // Apuntador al inicio de la lista de carrito de compras
+    Carrito* carrito;
 } Usuario;
 
 // Función para limpiar la pantalla de forma multiplataforma
@@ -88,10 +95,44 @@ Producto* cargarProductos(const char* archivo) {
     return inicio;
 }
 
+// Nueva función para crear usuario y carrito asociado con nombre de carrito personalizado
+Usuario* crearUsuario(const char* nombreUsuario, const char* numeroCelular) {
+    Usuario* nuevoUsuario = (Usuario*)malloc(sizeof(Usuario));
+    if (!nuevoUsuario) return NULL;
+    strncpy(nuevoUsuario->nombre, nombreUsuario, sizeof(nuevoUsuario->nombre));
+    strncpy(nuevoUsuario->numeroCelular, numeroCelular, sizeof(nuevoUsuario->numeroCelular));
+
+    Carrito* nuevoCarrito = (Carrito*)malloc(sizeof(Carrito));
+    if (!nuevoCarrito) {
+        free(nuevoUsuario);
+        return NULL;
+    }
+    snprintf(nuevoCarrito->nombre, sizeof(nuevoCarrito->nombre), "Carrito %s", nombreUsuario);
+    nuevoCarrito->productos = NULL;
+    nuevoUsuario->carrito = nuevoCarrito;
+
+    return nuevoUsuario;
+}
+
+// Adaptar la función para agregar productos al carrito del usuario
+void agregarProductoAlCarrito(Carrito* carrito, const char* nombre, float costo) {
+    Producto* nuevo = crearProducto(nombre, costo);
+    if (carrito->productos == NULL) {
+        carrito->productos = nuevo;
+    } else {
+        Producto* temp = carrito->productos;
+        while (temp->siguiente != NULL) temp = temp->siguiente;
+        temp->siguiente = nuevo;
+        nuevo->anterior = temp;
+    }
+}
+
 // Función para mostrar y navegar por la lista de productos
+// Modifica mostrarProductos para recibir el usuario y usar carrito->productos
+// Modifica mostrarProductos para recibir el usuario y usar carrito->productos
 void mostrarProductos(Producto* inicio, Usuario* usuario) {
-    Producto* actual = inicio; // Puntero para recorrer la lista de productos
-    char tecla; // Variable para almacenar la tecla presionada
+    Producto* actual = inicio;
+    char tecla;
 
     if (actual == NULL) {
         printf("No hay productos disponibles.\n");
@@ -99,53 +140,24 @@ void mostrarProductos(Producto* inicio, Usuario* usuario) {
     }
 
     while (1) {
-        // Mostrar el producto actual
         limpiarPantalla();
         printf("=== Producto ===\n");
-        printf("Nombre: %s\n", actual->nombre); // Mostrar el nombre del producto actual
-        printf("Costo: $%.2f\n", actual->costo); // Mostrar el costo del producto actual
+        printf("Nombre: %s\n", actual->nombre);
+        printf("Costo: $%.2f\n", actual->costo);
         printf("\nPresiona 'S' para siguiente, 'A' para anterior, 'C' para agregar al carrito, 'Q' para salir.\n");
-
-        // Leer la tecla presionada
-        // %c indica que leeremos un carácter
-        scanf(" %c", &tecla); // Espacio antes de %c para ignorar espacios en blanco
+        scanf(" %c", &tecla);
 
         if (tecla == 'S' || tecla == 's') {
-            // Ir al siguiente producto
-            if (actual->siguiente != NULL) { // Verificamos si hay un siguiente producto
-                actual = actual->siguiente;
-            } else {
-                printf("Ya estás en el último producto.\n");
-                pausarPrograma();
-            }
+            if (actual->siguiente != NULL) actual = actual->siguiente;
+            else { printf("Ya estás en el último producto.\n"); pausarPrograma(); }
         } else if (tecla == 'A' || tecla == 'a') {
-            // Ir al producto anterior
-            if (actual->anterior != NULL) { // Verificamos si hay un producto anterior
-                actual = actual->anterior;
-            } else {
-                printf("Ya estás en el primer producto.\n");
-                pausarPrograma();
-            }
+            if (actual->anterior != NULL) actual = actual->anterior;
+            else { printf("Ya estás en el primer producto.\n"); pausarPrograma(); }
         } else if (tecla == 'C' || tecla == 'c') {
-            // Agregar el producto al carrito
-            Producto* nuevo = crearProducto(actual->nombre, actual->costo);
-            if (usuario->carrito == NULL) { // Si el carrito está vacío
-                // Asignamos el nuevo producto como el inicio del carrito
-                usuario->carrito = nuevo;
-            } else { // Si ya hay productos en el carrito
-                // Recorremos el carrito hasta el final y agregamos el nuevo producto
-                Producto* temp = usuario->carrito; // Puntero temporal para recorrer el carrito
-                while (temp->siguiente != NULL) { // Recorremos hasta el último producto
-                    temp = temp->siguiente; // Avanzamos al siguiente producto
-                }
-                // Enlazamos el nuevo producto al final del carrito                
-                temp->siguiente = nuevo; // temp->siguiente apunta al nuevo producto
-                nuevo->anterior = temp; // nuevo->anterior apunta al último producto del carrito
-            }
+            agregarProductoAlCarrito(usuario->carrito, actual->nombre, actual->costo);
             printf("Producto '%s' agregado al carrito.\n", actual->nombre);
             pausarPrograma();
         } else if (tecla == 'Q' || tecla == 'q') {
-            // Salir de la navegación
             break;
         } else {
             printf("Tecla no válida.\n");
@@ -153,6 +165,7 @@ void mostrarProductos(Producto* inicio, Usuario* usuario) {
         }
     }
 }
+
 
 // Función para liberar la memoria de la lista ligada
 void liberarProductos(Producto* inicio) {
@@ -164,3 +177,4 @@ void liberarProductos(Producto* inicio) {
         free(temp); // Liberamos el nodo actual
     }
 }
+

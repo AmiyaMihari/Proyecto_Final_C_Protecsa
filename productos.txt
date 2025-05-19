@@ -1,8 +1,0 @@
-Manzana 1.5
-Pan 0.8
-Leche 2.3
-Huevo 0.5
-Cerveza 20.0
-Barritas 12.0
-Agua 11.0
-Refresco 22.0
