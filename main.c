@@ -167,17 +167,21 @@ void verInformacionUsuario(Usuario* usuario) {
     printf("\n=== Información del Usuario ===\n");
     printf("Nombre: %s\n", usuario->nombre);
     printf("Número de Celular: %s\n", usuario->numeroCelular);
-
+    float total = 0.0;
     // Mostrar el último producto agregado al carrito
      Producto* temp = usuario->carrito ? usuario->carrito->productos : NULL;
+     Producto* ultimo = NULL;
     if (temp == NULL) {
         printf("Último Producto Agregado: Ninguno (el carrito está vacío).\n");
     } else {
         // Recorrer hasta el último producto
-        while (temp->siguiente != NULL) {
+        while (temp != NULL) {
+            total += temp->costo;
+            ultimo = temp;
             temp = temp->siguiente;
         }
-         printf("Último Producto Agregado: %s - Costo: $%.2f\n", temp->nombre, temp->costo);
+         printf("Último Producto Agregado: %s\n", ultimo->nombre);
+         printf("Total del carrito: $%.2f\n", total);
     }
 
     pausarPrograma(); // Esperar a que el usuario presione Enter
