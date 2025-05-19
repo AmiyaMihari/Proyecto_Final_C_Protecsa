@@ -108,10 +108,11 @@ void menuUsuarios(Usuario*** usuariosPtr, int* cantidadUsuarios, Usuario** usuar
                     pausarPrograma();
                     break;
                 }
-                printf("Usuario '%s' agregado correctamente.\n", nombre);
+                *usuarioActual = usuarios[*cantidadUsuarios];
+                printf("Usuario '%s' agregado y seleccionado.\n", nombre);
                 (*cantidadUsuarios)++;
                 pausarPrograma();
-                break;
+                goto salir_usuarios; // Accede inmediatamente al menú de la tienda
             }
             case 2: {
                 // Solo permite gestión si se verifica el acceso admin
