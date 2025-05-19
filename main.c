@@ -12,11 +12,24 @@ Usuario usuario;
 
 // Función para mostrar la información del usuario
 void verInformacionUsuario() {
-    limpiarPantalla();
+    limpiarPantalla(); // Limpiar la pantalla antes de mostrar la información
     printf("\n=== Información del Usuario ===\n");
     printf("Nombre: %s\n", usuario.nombre);
     printf("Número de Celular: %s\n", usuario.numeroCelular);
-    pausarPrograma();
+
+    // Mostrar el último producto agregado al carrito
+    Producto* temp = usuario.carrito;
+    if (temp == NULL) {
+        printf("Último Producto Agregado: Ninguno (el carrito está vacío).\n");
+    } else {
+        // Recorrer hasta el último producto
+        while (temp->siguiente != NULL) {
+            temp = temp->siguiente;
+        }
+        printf("Último Producto Agregado: %s - Costo: $%.2f\n", temp->nombre, temp->costo);
+    }
+
+    pausarPrograma(); // Esperar a que el usuario presione Enter
 }
 
 // Función para mostrar el carrito de compras
@@ -71,6 +84,7 @@ void solicitarDatosUsuario() {
 int main() {
     int opcion; // Variable para almacenar la opción seleccionada por el usuario
 
+    //Aquí debe de ir FUNCION DE USUARIOS
     solicitarDatosUsuario();
 
     // Cargar productos desde el archivo
