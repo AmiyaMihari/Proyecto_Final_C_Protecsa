@@ -2,15 +2,71 @@
 #include <stdlib.h>
 #include "productos.c" // Incluir directamente el archivo productos.c
 
-// Variables globales para productos y usuario
-// Definimos la estructructura del usuario usando la función del archivo productos.c
-//Usuario usuario;
+// C0ntr4señ4s del admin
+#define ADMIN_USER "admin"
+#define ADMIN_PASS "1234"
+
+int verificar_acceso() {
+    char usuario[50];
+    char contrasena[50];
+
+    printf("=== Acceso de Administrador ===\n");
+    printf("Usuario: ");
+    scanf("%49s", usuario);
+    printf("Contraseña: ");
+    scanf("%49s", contrasena);
+
+    if (strcmp(usuario, ADMIN_USER) == 0 && strcmp(contrasena, ADMIN_PASS) == 0) {
+        printf("Acceso concedido.\n\n");
+        return 1;
+    } else {
+        printf("Acceso denegado.\n\n");
+        return 0;
+    }
+}
+
+void gestionarUsuarios(Usuario*** usuariosPtr, int* cantidadUsuarios) {
+    Usuario** usuarios = *usuariosPtr;
+    int opcionGestion;
+    printf("\nUsuarios registrados:\n");
+    if (*cantidadUsuarios == 0) {
+        printf("No hay usuarios registrados.\n");
+    } else {
+        for (int i = 0; i < *cantidadUsuarios; i++) {
+            printf("%d. %s, Celular: %s\n", i + 1, usuarios[i]->nombre, usuarios[i]->numeroCelular);
+        }
+        printf("\n¿Desea eliminar un usuario? (1: Sí, 0: No): ");
+        scanf("%d", &opcionGestion);
+        if (opcionGestion == 1) {
+            int seleccion;
+            printf("Selecciona el número del usuario a eliminar (1-%d): ", *cantidadUsuarios);
+            scanf("%d", &seleccion);
+            if (seleccion >= 1 && seleccion <= *cantidadUsuarios) {
+                int idx = seleccion - 1;
+                // Liberar memoria del usuario a eliminar
+                liberarProductos(usuarios[idx]->carrito->productos);
+                free(usuarios[idx]->carrito);
+                free(usuarios[idx]);
+                // Desplazar los usuarios restantes
+                for (int j = idx; j < *cantidadUsuarios - 1; j++) {
+                    usuarios[j] = usuarios[j + 1];
+                }
+                (*cantidadUsuarios)--;
+                printf("Usuario eliminado correctamente.\n");
+            } else {
+                printf("Selección no válida.\n");
+            }
+        }
+    }
+    pausarPrograma();
+}
 
 // Menú de gestión de usuarios
 void menuUsuarios(Usuario*** usuariosPtr, int* cantidadUsuarios, Usuario** usuarioActual) {
     int capacidad = (*cantidadUsuarios > 0) ? *cantidadUsuarios : 2;
     Usuario** usuarios = *usuariosPtr;
-    char opcion[10];
+    char opcionStr[10];
+    int opcion;
 
     if (usuarios == NULL) {
         usuarios = (Usuario**)malloc(capacidad * sizeof(Usuario*));
@@ -21,80 +77,87 @@ void menuUsuarios(Usuario*** usuariosPtr, int* cantidadUsuarios, Usuario** usuar
         limpiarPantalla();
         printf("\n=== MENÚ DE USUARIOS ===\n");
         printf("1. Agregar usuario\n");
-        printf("2. Ver usuarios registrados\n");
+        printf("2. Gestionar usuarios\n");
         printf("3. Seleccionar usuario\n");
         printf("4. Salir del programa\n");
         printf("Selecciona una opción: ");
-        scanf("%s", opcion);
+        scanf("%s", opcionStr);
+        opcion = atoi(opcionStr);
 
-        if (strcmp(opcion, "1") == 0) {
-            char nombre[50], celular[15];
-            printf("Introduce el nombre del usuario: ");
-            scanf("%s", nombre);
-            printf("Introduce el número de celular: ");
-            scanf("%s", celular);
+        switch (opcion) {
+            case 1: {
+                char nombre[50], celular[15];
+                printf("Introduce el nombre del usuario: ");
+                scanf("%s", nombre);
+                printf("Introduce el número de celular: ");
+                scanf("%s", celular);
 
-            // Si se rebasa la capacidad, realoca
-            if (*cantidadUsuarios >= capacidad) {
-                capacidad *= 2;
-                usuarios = (Usuario**)realloc(usuarios, capacidad * sizeof(Usuario*));
-                if (usuarios == NULL) {
-                    printf("Error al asignar memoria.\n");
-                    exit(1);
+                // Si se rebasa la capacidad, realoca
+                if (*cantidadUsuarios >= capacidad) {
+                    capacidad *= 2;
+                    usuarios = (Usuario**)realloc(usuarios, capacidad * sizeof(Usuario*));
+                    if (usuarios == NULL) {
+                        printf("Error al asignar memoria.\n");
+                        exit(1);
+                    }
                 }
-            }
 
-            usuarios[*cantidadUsuarios] = crearUsuario(nombre, celular);
-            if (usuarios[*cantidadUsuarios] == NULL) {
-                printf("Error al crear usuario.\n");
-                continue;
-            }
-            printf("Usuario '%s' agregado correctamente.\n", nombre);
-            (*cantidadUsuarios)++;
-
-        } else if (strcmp(opcion, "2") == 0) {
-            printf("\nUsuarios registrados:\n");
-            if (*cantidadUsuarios == 0) {
-                printf("No hay usuarios registrados.\n");
-            } else {
-                for (int i = 0; i < *cantidadUsuarios; i++) {
-                    printf("%d. %s, Celular: %s\n", i + 1, usuarios[i]->nombre, usuarios[i]->numeroCelular);
+                usuarios[*cantidadUsuarios] = crearUsuario(nombre, celular);
+                if (usuarios[*cantidadUsuarios] == NULL) {
+                    printf("Error al crear usuario.\n");
+                    pausarPrograma();
+                    break;
                 }
-            }
-            pausarPrograma();
-
-        } else if (strcmp(opcion, "3") == 0) {
-            if (*cantidadUsuarios == 0) {
-                printf("No hay usuarios registrados. Agrega uno primero.\n");
+                printf("Usuario '%s' agregado correctamente.\n", nombre);
+                (*cantidadUsuarios)++;
                 pausarPrograma();
-            } else {
-                printf("\nUsuarios registrados:\n");
-                for (int i = 0; i < *cantidadUsuarios; i++) {
-                    printf("%d. %s\n", i + 1, usuarios[i]->nombre);
-                }
-                printf("Selecciona un usuario (1-%d): ", *cantidadUsuarios);
-                int seleccion;
-                scanf("%d", &seleccion);
-                if (seleccion >= 1 && seleccion <= *cantidadUsuarios) {
-                    *usuarioActual = usuarios[seleccion - 1];
-                    printf("Usuario '%s' seleccionado.\n", (*usuarioActual)->nombre);
-                    pausarPrograma();
-                    break; // Salir del menú de usuarios
-                } else {
-                    printf("Selección no válida.\n");
-                    pausarPrograma();
-                }
+                break;
             }
-
-        } else if (strcmp(opcion, "4") == 0) {
-            printf("Saliendo del programa...\n");
-            exit(0); // Terminar el programa
-        } else {
-            printf("Opción no válida.\n");
-            pausarPrograma();
+            case 2: {
+                // Solo permite gestión si se verifica el acceso admin
+                if (!verificar_acceso()) {
+                    pausarPrograma();
+                    break;
+                }
+                gestionarUsuarios(&usuarios, cantidadUsuarios);
+                break;
+            }
+            case 3: {
+                if (*cantidadUsuarios == 0) {
+                    printf("No hay usuarios registrados. Agrega uno primero.\n");
+                    pausarPrograma();
+                } else {
+                    printf("\nUsuarios registrados:\n");
+                    for (int i = 0; i < *cantidadUsuarios; i++) {
+                        printf("%d. %s\n", i + 1, usuarios[i]->nombre);
+                    }
+                    printf("Selecciona un usuario (1-%d): ", *cantidadUsuarios);
+                    int seleccion;
+                    scanf("%d", &seleccion);
+                    if (seleccion >= 1 && seleccion <= *cantidadUsuarios) {
+                        *usuarioActual = usuarios[seleccion - 1];
+                        printf("Usuario '%s' seleccionado.\n", (*usuarioActual)->nombre);
+                        pausarPrograma();
+                        goto salir_usuarios; // Salir del ciclo de usuarios
+                    } else {
+                        printf("Selección no válida.\n");
+                        pausarPrograma();
+                    }
+                }
+                break;
+            }
+            case 4: {
+                printf("Saliendo del programa...\n");
+                exit(0); // Terminar el programa
+            }
+            default: {
+                printf("Opción no válida.\n");
+                pausarPrograma();
+            }
         }
     }
-    *usuariosPtr = usuarios; // Actualiza el puntero si se realocó
+salir_usuarios:
+    *usuariosPtr = usuarios; // Actualizar el puntero en caso de realocación
 }
 
 // Función para mostrar la información del usuario
